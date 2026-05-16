@@ -334,6 +334,7 @@ wget -qO- https://raw.githubusercontent.com/darmado/attack-macOS/main/ttp/discov
 
 - **[Integrations index](docs/Integrations/README.md)** — GitHub (`gh`), Caldera, and future vendor touchpoints.
 - **[Third-party security baseline](docs/Integrations/third_party_security.md)** — generic minimums; links to per-integration pages (e.g. [GitHub](docs/Integrations/github_repo_interaction.md)).
+- **Project site (GitHub Pages)** — after you enable Actions-based Pages, the URL will be **`https://darmado.github.io/attack-macOS/`** (see `docs/Design/website_docs_pipeline.md` and `.github/workflows/pages.yml`).
 
 ### Shipped procedures, upstreams, and maintainer scripts
 
@@ -348,9 +349,25 @@ wget -qO- https://raw.githubusercontent.com/darmado/attack-macOS/main/ttp/discov
 
 Native Caldera plugin for seamless integration with red team operations. The plugin transforms attack-macOS YAML configurations into ready-to-execute abilities using a full command approach.
 
-##
+## Disclaimer (authorized use only)
 
-### License
+This repository is intended for **authorized security research**, **defensive validation**, and **red-team exercises with explicit written permission** on systems you own or are contracted to assess.
+
+**The project owner and contributors are not responsible** for misuse of scripts, procedures, or documentation—including unlawful access, disruption, or harm. You are solely responsible for complying with applicable laws and organizational policy. See also [SECURITY.md](SECURITY.md).
+
+## Credits
+
+attack-macOS builds on public research and community catalogs (this project is independent and not endorsed by them):
+
+| Resource | Link |
+|----------|------|
+| **Atomic Red Team** | [https://github.com/redcanaryco/atomic-red-team](https://github.com/redcanaryco/atomic-red-team) |
+| **MITRE ATT&CK** | [https://attack.mitre.org/](https://attack.mitre.org/) — framework; data and repos: [MITRE ATT&CK GitHub](https://github.com/mitre-attack) |
+| **LOOBins** (Living Off the Land binaries, macOS) | [https://www.loobins.io/](https://www.loobins.io/) — reference catalog; optional tooling: [PyLOOBins](https://www.loobins.io/docs/api/pyloobins/) |
+
+Upstream and attribution detail for shipped content is summarized in [Shipped procedures: upstream sources and maintainer scripts](docs/Shipped_procedures_upstream_sources_and_maintainer_scripts.md).
+
+## License
 
 Apache License 2.0. [LICENSE](LICENSE)
 

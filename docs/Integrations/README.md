@@ -23,5 +23,9 @@ Start here for **any new integration**:
 
 When you add a new vendor touchpoint, add a row to **`third_party_security.md`** and either a new page under **`docs/Integrations/`** or a clearly linked doc under `integrations/` with a pointer from this README.
 
+## Design drafts
+
+- [Procedure YAML SDK (read-first, PyPI later)](../Design/procedure_yaml_sdk_design.md) — template + validate + serialize; builders stay maintainer-owned.
+
 ---
 Last modified: 2026-05-15

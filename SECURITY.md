@@ -4,6 +4,12 @@
 
 This document states trust boundaries for running attack-macOS maintainer tooling in pipelines, labs, or integrations, and separates controls implemented in this repository from controls expected in the deployment environment.
 
+## Responsible use and liability
+
+**The project owner and contributors disclaim responsibility for misuse** of any script, YAML procedure, builder output, or documentation in this repository—including unauthorized access to systems, violation of law, or breach of policy.
+
+Use this project only in environments you control or where you have **explicit, documented authorization**. A short public notice also appears in the root [README.md](README.md) under **Disclaimer (authorized use only)**.
+
 ## Assumptions
 
 1. The organization operating the tooling controls access to the repository checkout (clone integrity, branch protection, and review before merge).
@@ -44,6 +50,7 @@ Many teams run CI steps in containers or ephemeral VMs with read-only roots and 
 
 ## References
 
+- [README.md](README.md) — public disclaimer and credits.
 - `docs/CICD/python_cli_security.md`
 - `docs/Shipped_procedures_upstream_sources_and_maintainer_scripts.md`
 - `docs/Standards/README.md`
@@ -53,4 +60,4 @@ Many teams run CI steps in containers or ephemeral VMs with read-only roots and 
 
 Last modified: 2026-05-15  
 Last modified by: Documentation maintainers  
-Version: 1.1.0
+Version: 1.2.0
