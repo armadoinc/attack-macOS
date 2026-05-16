@@ -113,6 +113,9 @@ vendor/
 /build/
 /dist/
 
+# GitHub Pages static site build output (site/build/build_site.py)
+site/public/
+
 # Environment files
 .env
 .env.*
