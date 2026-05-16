@@ -127,6 +127,7 @@ site/public/
 *BAK.*
 *.txt
 !cicd/audit/inventory_allowlist.txt
+!site/build/requirements.txt
 *.backup
 
 # Script output files
