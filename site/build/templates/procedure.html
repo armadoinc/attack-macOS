@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import full_sidebar %}
+{% block title %}{{ proc.procedure_name }} · attack-macOS{% endblock %}
+{% block sidebar %}
+  {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, proc.procedure_name) }}
+{% endblock %}
+{% block topbar %}
+  <div class="search-wrap">
+    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
+  </div>
+{% endblock %}
+{% block content %}
+  <h1><code>{{ proc.procedure_name }}</code></h1>
+  <p class="pill">{{ proc.tactic or "—" }} · {{ proc.ttp_id or "—" }}</p>
+
+  <table class="meta-table">
+    <tbody>
+      <tr><th>Intent</th><td>{{ proc.intent or "—" }}</td></tr>
+      <tr><th>Author</th><td>{{ proc.author or "—" }}</td></tr>
+      <tr><th>Version</th><td>{{ proc.version or "—" }}</td></tr>
+      <tr><th>GUID</th><td><code>{{ proc.guid or "—" }}</code></td></tr>
+      <tr><th>Created</th><td>{{ proc.created or "—" }}</td></tr>
+      <tr><th>Updated</th><td>{{ proc.updated or "—" }}</td></tr>
+      <tr><th>Credit</th><td>{{ proc.credit or "—" }}</td></tr>
+      <tr><th>Platform</th><td>{{ proc.platform_display or "—" }}</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    <a href="{{ proc.yaml_href }}">View procedure YAML on GitHub</a>
+    ·
+    <a href="{{ proc.script_href }}">View generated shell script (raw)</a>
+  </p>
+
+  {% if has_proc_doc and body_html %}
+  <h2>Procedure notes</h2>
+  <article class="md-body">{{ body_html }}</article>
+  {% else %}
+  <p class="footer-note">
+    No <code>docs/Procedures/{{ proc.procedure_name }}.md</code> yet—add Markdown there to show long-form notes on this page.
+  </p>
+  {% endif %}
+{% endblock %}

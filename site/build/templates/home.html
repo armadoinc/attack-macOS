@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import full_sidebar %}
+{% block title %}attack-macOS{% endblock %}
+{% block sidebar %}
+  {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, "") }}
+{% endblock %}
+{% block topbar %}
+  <div class="search-wrap">
+    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
+  </div>
+{% endblock %}
+{% block content_class %}wide{% endblock %}
+{% block content %}
+  <div class="page-hero">
+    <h1>attack-macOS</h1>
+    <p class="pill">Authorized security research · defensive validation · explicit red-team permission</p>
+    <p class="lead">
+      Browse <strong>{{ procedures|length }}</strong> shell procedures from the drawer (filters + search).
+      <code>docs/</code> in the repo is mirrored here under <a href="{{ site_prefix }}/docs/Guides/README.html">/docs/…</a>.
+    </p>
+    <p class="hero-actions">
+      <a class="btn" href="https://github.com/{{ github_repo }}">Source on GitHub</a>
+    </p>
+  </div>
+  <p class="footer-note">See repository README and SECURITY for disclaimer and credits.</p>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% macro sidebar_links(site_prefix) %}
+  <div class="sidebar-brand">
+    <a href="{{ site_prefix }}/index.html">attack-macOS</a>
+  </div>
+  <nav class="sidebar-shortcuts">
+    <a href="{{ site_prefix }}/index.html">Home</a>
+    <a href="{{ site_prefix }}/browse.html">Browse procedures</a>
+  </nav>
+{% endmacro %}
+
+{% macro doc_tree(doc_nav, current_href) %}
+  <div class="nav-title">Documentation</div>
+  <div class="sidebar-scroll doc-tree">
+    <ul class="proc-list doc-nav">
+      {% for d in doc_nav %}
+      <li>
+        <a
+          href="{{ d.href }}"
+          class="{% if current_href and d.href == current_href %}active{% endif %}"
+        >{{ d.title }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endmacro %}
+
+{% macro procedure_explorer(procedures, tactics, active_name, site_prefix) %}
+<div class="sidebar-procedures">
+  <div class="nav-title">Procedures</div>
+  <div class="filters" onclick="event.stopPropagation()">
+    <label for="filter-tactic">Tactic</label>
+    <select id="filter-tactic">
+      <option value="">All tactics</option>
+      {% for t in tactics %}
+      <option value="{{ t|lower }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+    <label for="filter-author">Author contains</label>
+    <input type="text" id="filter-author" placeholder="e.g. darmado" autocomplete="off" />
+    <label for="filter-ttp">TTP id contains</label>
+    <input type="text" id="filter-ttp" placeholder="e.g. T1082" autocomplete="off" />
+  </div>
+  <div class="sidebar-scroll proc-panel">
+    <ul class="proc-list">
+      {% for p in procedures %}
+      <li>
+        <a
+          href="{{ site_prefix }}/procedures/{{ p.slug }}.html"
+          class="{{ 'active' if p.procedure_name == active_name else '' }}"
+          data-name="{{ p.procedure_name|e }}"
+          data-tactic="{{ p.tactic_key|e }}"
+          data-author="{{ p.author|e }}"
+          data-ttp="{{ p.ttp_id|e }}"
+        >{{ p.procedure_name }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro full_sidebar(site_prefix, doc_nav, doc_current_href, procedures, tactics, active_procedure_name) %}
+  {{ sidebar_links(site_prefix) }}
+  {{ doc_tree(doc_nav, doc_current_href) }}
+  <hr class="sidebar-rule" />
+  {{ procedure_explorer(procedures, tactics, active_procedure_name, site_prefix) }}
+{% endmacro %}

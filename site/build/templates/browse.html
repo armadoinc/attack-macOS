@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import full_sidebar %}
+{% block title %}Browse procedures · attack-macOS{% endblock %}
+{% block sidebar %}
+  {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, "") }}
+{% endblock %}
+{% block topbar %}
+  <div class="search-wrap">
+    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
+  </div>
+{% endblock %}
+{% block content %}
+  <h1>Browse procedures</h1>
+  <p>
+    Use the left panel to filter by tactic, author substring, or TTP id, and search by name or free text.
+    Each procedure has a detail page with YAML metadata and optional long-form notes under
+    <code>docs/Procedures/&lt;procedure_name&gt;.md</code>.
+  </p>
+  <p><a href="{{ site_prefix }}/index.html">← Home</a></p>
+{% endblock %}

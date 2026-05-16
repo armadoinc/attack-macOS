@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import full_sidebar %}
+{% block title %}{{ doc_title }} · attack-macOS{% endblock %}
+{% block sidebar %}
+  {{ full_sidebar(site_prefix, doc_nav, current_href, procedures, tactics, "") }}
+{% endblock %}
+{% block topbar %}
+  <div class="search-wrap">
+    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
+  </div>
+{% endblock %}
+{% block content %}
+  <article class="md-body">{{ body_html }}</article>
+{% endblock %}
