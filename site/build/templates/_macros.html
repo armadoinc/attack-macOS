@@ -46,9 +46,6 @@
           data-ttp="{{ p.ttp_id|e }}"
         >
           <span class="proc-name">{{ p.procedure_name }}</span>
-          {% if p.intent_short %}
-          <span class="proc-intent">{{ p.intent_short }}</span>
-          {% endif %}
         </a>
       </li>
       {% endfor %}

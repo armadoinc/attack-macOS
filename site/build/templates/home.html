@@ -7,14 +7,13 @@
 {% block content_class %}wide home-page{% endblock %}
 {% block content %}
   <div class="home-hero">
-    <img class="home-logo" src="{{ site_logo_url }}" alt="attack-macOS" width="120" height="120" decoding="async" />
-    <h1>attack-macOS</h1>
+    <img class="home-logo" src="{{ site_logo_url }}" alt="attack-macOS" decoding="async" />
+    <h1 class="sr-only">attack-macOS</h1>
     <p class="home-tagline">
       Scripts for security teams to evaluate macOS endpoint detection and response capabilities—
       Living Off The Orchard (LOLBins) techniques via standalone shell procedures with logging,
       encoding, and MITRE ATT&amp;CK mapping.
     </p>
-    <p class="pill">Authorized security research · defensive validation · explicit red-team permission</p>
   </div>
 
   <section class="home-stats">

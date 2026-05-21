@@ -4,59 +4,64 @@
 {% block sidebar %}
   {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, proc.procedure_name) }}
 {% endblock %}
+{% block content_class %}wide proc-page{% endblock %}
 {% block content %}
-  <header class="proc-header">
-    <h1><code>{{ proc.procedure_name }}</code></h1>
-    <p class="pill">{{ proc.tactic or "—" }} · {{ proc.ttp_id or "—" }}</p>
-    {% if proc.intent %}
-    <p class="proc-intent-full">{{ proc.intent }}</p>
-    {% endif %}
-  </header>
+  <div class="proc-layout">
+    <div class="proc-main">
+      <header class="proc-header">
+        <h1><code>{{ proc.procedure_name }}</code></h1>
+        <p class="pill">{{ proc.tactic or "—" }} · {{ proc.ttp_id or "—" }}</p>
+        {% if proc.intent %}
+        <p class="proc-intent-full">{{ proc.intent }}</p>
+        {% endif %}
+      </header>
 
-  <div class="proc-view-tabs" role="tablist" aria-label="Procedure source">
-    {% if has_script %}
-    <button type="button" class="proc-tab{% if default_view == 'script' %} active{% endif %}" data-proc-view="script" role="tab" aria-selected="{{ 'true' if default_view == 'script' else 'false' }}">View script</button>
-    {% endif %}
-    <button type="button" class="proc-tab{% if default_view == 'yaml' %} active{% endif %}" data-proc-view="yaml" role="tab" aria-selected="{{ 'true' if default_view == 'yaml' else 'false' }}">View YAML procedure</button>
+      <div class="proc-view-tabs" role="tablist" aria-label="Procedure source">
+        {% if has_script %}
+        <button type="button" class="proc-tab{% if default_view == 'script' %} active{% endif %}" data-proc-view="script" role="tab" aria-selected="{{ 'true' if default_view == 'script' else 'false' }}">View script</button>
+        {% endif %}
+        <button type="button" class="proc-tab{% if default_view == 'yaml' %} active{% endif %}" data-proc-view="yaml" role="tab" aria-selected="{{ 'true' if default_view == 'yaml' else 'false' }}">View YAML procedure</button>
+      </div>
+
+      <div class="code-panel{% if default_view != 'script' %} hidden{% endif %}" id="proc-view-script" role="tabpanel">
+        {% if has_script %}
+        <div class="code-highlight-wrap">{{ script_html }}</div>
+        {% else %}
+        <p class="footer-note">Generated shell not found at <code>{{ proc.script_path }}</code>. Run the shell builder or check tactic path.</p>
+        {% endif %}
+      </div>
+
+      <div class="code-panel{% if default_view != 'yaml' %} hidden{% endif %}" id="proc-view-yaml" role="tabpanel">
+        <div class="code-highlight-wrap">{{ yaml_html }}</div>
+      </div>
+
+      {% if has_proc_doc and body_html %}
+      <h2>Procedure notes</h2>
+      <article class="md-body">{{ body_html }}</article>
+      {% endif %}
+
+      <footer class="proc-source-links">
+        <p>Raw on GitHub:</p>
+        <ul>
+          <li><a href="{{ proc.script_href }}" target="_blank" rel="noopener noreferrer">Shell script (raw)</a></li>
+          <li><a href="{{ proc.yaml_href }}" target="_blank" rel="noopener noreferrer">Procedure YAML (blob)</a></li>
+        </ul>
+      </footer>
+    </div>
+
+    <aside class="proc-meta-col" aria-label="Procedure metadata">
+      <h2 class="meta-col-title">Metadata</h2>
+      <table class="meta-table meta-table-col">
+        <tbody>
+          <tr><th>Author</th><td>{{ proc.author or "—" }}</td></tr>
+          <tr><th>Version</th><td>{{ proc.version or "—" }}</td></tr>
+          <tr><th>GUID</th><td><code>{{ proc.guid or "—" }}</code></td></tr>
+          <tr><th>Created</th><td>{{ proc.created or "—" }}</td></tr>
+          <tr><th>Updated</th><td>{{ proc.updated or "—" }}</td></tr>
+          <tr><th>Credit</th><td>{{ proc.credit or "—" }}</td></tr>
+          <tr><th>Platform</th><td>{{ proc.platform_display or "—" }}</td></tr>
+        </tbody>
+      </table>
+    </aside>
   </div>
-
-  <div class="code-panel{% if default_view != 'script' %} hidden{% endif %}" id="proc-view-script" role="tabpanel">
-    {% if has_script %}
-    <pre class="code-raw"><code>{{ script_raw|e }}</code></pre>
-    {% else %}
-    <p class="footer-note">Generated shell not found at <code>{{ proc.script_path }}</code>. Run the shell builder or check tactic path.</p>
-    {% endif %}
-  </div>
-
-  <div class="code-panel{% if default_view != 'yaml' %} hidden{% endif %}" id="proc-view-yaml" role="tabpanel">
-    <pre class="code-raw"><code>{{ yaml_raw|e }}</code></pre>
-  </div>
-
-  <details class="meta-fold">
-    <summary>Metadata</summary>
-    <table class="meta-table">
-      <tbody>
-        <tr><th>Author</th><td>{{ proc.author or "—" }}</td></tr>
-        <tr><th>Version</th><td>{{ proc.version or "—" }}</td></tr>
-        <tr><th>GUID</th><td><code>{{ proc.guid or "—" }}</code></td></tr>
-        <tr><th>Created</th><td>{{ proc.created or "—" }}</td></tr>
-        <tr><th>Updated</th><td>{{ proc.updated or "—" }}</td></tr>
-        <tr><th>Credit</th><td>{{ proc.credit or "—" }}</td></tr>
-        <tr><th>Platform</th><td>{{ proc.platform_display or "—" }}</td></tr>
-      </tbody>
-    </table>
-  </details>
-
-  {% if has_proc_doc and body_html %}
-  <h2>Procedure notes</h2>
-  <article class="md-body">{{ body_html }}</article>
-  {% endif %}
-
-  <footer class="proc-source-links">
-    <p>Raw on GitHub:</p>
-    <ul>
-      <li><a href="{{ proc.script_href }}" target="_blank" rel="noopener noreferrer">Shell script (raw)</a></li>
-      <li><a href="{{ proc.yaml_href }}" target="_blank" rel="noopener noreferrer">Procedure YAML (blob)</a></li>
-    </ul>
-  </footer>
 {% endblock %}

@@ -1,22 +1,50 @@
 /**
- * Sidebar procedure filter (header search + tactic/author/ttp filters).
- * Search only affects #proc-list in the sidebar — not main content.
+ * Sidebar filters, header search dropdown, procedure view tabs.
  */
 (function () {
   function norm(s) {
     return (s || "").toString().trim().toLowerCase();
   }
 
-  function applyProcFilter() {
+  function loadSearchIndex() {
+    var el = document.getElementById("proc-search-data");
+    if (!el) return [];
+    try {
+      return JSON.parse(el.textContent || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  var searchIndex = [];
+
+  function matchProcedure(item, q, tactic, author, ttp) {
+    if (tactic && norm(item.tactic) !== tactic) return false;
+    if (author && norm(item.author || "").indexOf(author) === -1) return false;
+    if (ttp && norm(item.ttp).indexOf(ttp) === -1) return false;
+    if (q) {
+      var blob =
+        norm(item.name) +
+        " " +
+        norm(item.intent) +
+        " " +
+        norm(item.tactic) +
+        " " +
+        norm(item.ttp) +
+        " " +
+        norm(item.author);
+      if (blob.indexOf(q) === -1) return false;
+    }
+    return true;
+  }
+
+  function applySidebarFilter() {
     var q = norm(document.getElementById("proc-search") && document.getElementById("proc-search").value);
     var tactic = norm(document.getElementById("filter-tactic") && document.getElementById("filter-tactic").value);
     var author = norm(document.getElementById("filter-author") && document.getElementById("filter-author").value);
     var ttp = norm(document.getElementById("filter-ttp") && document.getElementById("filter-ttp").value);
-    var visible = 0;
-    var total = 0;
 
     document.querySelectorAll("#proc-list a[data-name]").forEach(function (a) {
-      total += 1;
       var ok = true;
       if (tactic && norm(a.getAttribute("data-tactic")) !== tactic) ok = false;
       if (author && norm(a.getAttribute("data-author")).indexOf(author) === -1) ok = false;
@@ -36,20 +64,79 @@
       }
       var li = a.closest("li");
       if (li) li.classList.toggle("hidden", !ok);
-      if (ok) visible += 1;
+    });
+  }
+
+  function renderSearchDropdown() {
+    var input = document.getElementById("proc-search");
+    var dropdown = document.getElementById("proc-search-dropdown");
+    if (!input || !dropdown) return;
+
+    var q = norm(input.value);
+    var tactic = norm(document.getElementById("filter-tactic") && document.getElementById("filter-tactic").value);
+    var author = norm(document.getElementById("filter-author") && document.getElementById("filter-author").value);
+    var ttp = norm(document.getElementById("filter-ttp") && document.getElementById("filter-ttp").value);
+
+    if (!q) {
+      dropdown.classList.add("hidden");
+      dropdown.innerHTML = "";
+      input.setAttribute("aria-expanded", "false");
+      return;
+    }
+
+    var matches = searchIndex.filter(function (item) {
+      return matchProcedure(item, q, tactic, author, ttp);
+    }).slice(0, 12);
+
+    if (!matches.length) {
+      dropdown.innerHTML = '<p class="search-empty">No matching procedures</p>';
+    } else {
+      dropdown.innerHTML = matches
+        .map(function (item) {
+          var meta = [item.tactic, item.ttp].filter(Boolean).join(" · ");
+          return (
+            '<a class="search-hit" role="option" href="' +
+            item.href +
+            '"><span class="search-hit-name">' +
+            item.name +
+            "</span>" +
+            (meta ? '<span class="search-hit-meta">' + meta + "</span>" : "") +
+            "</a>"
+          );
+        })
+        .join("");
+    }
+
+    dropdown.classList.remove("hidden");
+    input.setAttribute("aria-expanded", "true");
+  }
+
+  function initSearchDropdown() {
+    var input = document.getElementById("proc-search");
+    var dropdown = document.getElementById("proc-search-dropdown");
+    if (!input || !dropdown) return;
+
+    input.addEventListener("input", function () {
+      applySidebarFilter();
+      renderSearchDropdown();
     });
 
-    var countEl = document.getElementById("proc-search-count");
-    if (countEl) {
-      var active = q || tactic || author || ttp;
-      if (active && visible !== total) {
-        countEl.textContent = visible + " / " + total;
-        countEl.classList.remove("hidden");
-      } else {
-        countEl.textContent = "";
-        countEl.classList.add("hidden");
+    input.addEventListener("focus", renderSearchDropdown);
+
+    document.addEventListener("click", function (e) {
+      if (!dropdown.contains(e.target) && e.target !== input) {
+        dropdown.classList.add("hidden");
+        input.setAttribute("aria-expanded", "false");
       }
-    }
+    });
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        dropdown.classList.add("hidden");
+        input.setAttribute("aria-expanded", "false");
+        input.blur();
+      }
+    });
   }
 
   function initProcViewTabs() {
@@ -74,14 +161,22 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    ["proc-search", "filter-tactic", "filter-author", "filter-ttp"].forEach(function (id) {
+    searchIndex = loadSearchIndex();
+    ["filter-tactic", "filter-author", "filter-ttp"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) {
-        el.addEventListener("input", applyProcFilter);
-        el.addEventListener("change", applyProcFilter);
+        el.addEventListener("input", function () {
+          applySidebarFilter();
+          renderSearchDropdown();
+        });
+        el.addEventListener("change", function () {
+          applySidebarFilter();
+          renderSearchDropdown();
+        });
       }
     });
-    applyProcFilter();
+    applySidebarFilter();
+    initSearchDropdown();
     initProcViewTabs();
   });
 })();

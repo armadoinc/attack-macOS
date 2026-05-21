@@ -54,6 +54,8 @@ python3 site/build/build_site.py
 cd site/public && python3 -m http.server 8765
 ```
 
+**Site logo:** drop `logo.svg`, `logo.png`, or `logo.webp` into `site/build/static/` (copied to `site/public/assets/` on build). That file overrides the remote `SITE_LOGO_URL` fallback.
+
 CI uses a fresh Ubuntu runner with `pip install -r site/build/requirements.txt`; your local Python policy does not affect Pages deploy.
 
 ## Adding or updating content

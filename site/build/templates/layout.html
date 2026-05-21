@@ -12,19 +12,21 @@
   <input type="checkbox" id="nav-toggle" class="nav-toggle" tabindex="-1" aria-hidden="true" />
   <header class="site-header">
     <label class="burger" for="nav-toggle" aria-label="Toggle procedure menu"><span></span><span></span><span></span></label>
-    <a class="site-logo" href="{{ site_prefix }}/index.html">
-      <img src="{{ site_logo_url }}" alt="" width="34" height="34" decoding="async" />
-      <span>attack-macOS</span>
+    <a class="site-logo" href="{{ site_prefix }}/index.html" aria-label="attack-macOS home">
+      <img src="{{ site_logo_url }}" alt="attack-macOS" decoding="async" />
     </a>
     <div class="search-wrap header-search">
-      <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" aria-label="Search procedures in sidebar" />
-      <span class="search-count hidden" id="proc-search-count" aria-live="polite"></span>
+      <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" aria-label="Search procedures" aria-expanded="false" aria-controls="proc-search-dropdown" />
+      <div class="search-dropdown hidden" id="proc-search-dropdown" role="listbox" aria-label="Procedure matches"></div>
     </div>
-    <a class="header-gh" href="https://github.com/{{ github_repo }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a class="header-gh" href="https://github.com/{{ github_repo }}" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+      <svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+    </a>
   </header>
   <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
   <aside class="sidebar">{% block sidebar %}{% endblock %}</aside>
   <main class="content {% block content_class %}{% endblock %}">{% block content %}{% endblock %}</main>
+  <script type="application/json" id="proc-search-data">{{ search_index | tojson }}</script>
   <script src="{{ site_prefix }}/assets/app.js" defer></script>
 </body>
 </html>

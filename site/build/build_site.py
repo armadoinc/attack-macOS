@@ -64,10 +64,49 @@ OUT_PROCEDURES_ROOT = "procedures"
 MARKDOWN_EXT = ".md"
 HTML_EXT = ".html"
 
-SITE_LOGO_URL = os.environ.get(
+SITE_LOGO_REMOTE = os.environ.get(
     "SITE_LOGO_URL",
     "https://github.com/user-attachments/assets/03a5c7dc-9dd6-49f9-a58b-2fdcdb6596f6",
 )
+SITE_LOGO_FILES = ("logo.svg", "logo.png", "logo.webp")
+
+def resolve_site_logo_url() -> str:
+    """Prefer site/build/static/logo.{svg,png,webp} over remote SITE_LOGO_URL."""
+    for name in SITE_LOGO_FILES:
+        if (STATIC / name).is_file():
+            return _site_url(SITE_ASSETS_SEGMENT, name)
+    return SITE_LOGO_REMOTE
+
+
+def build_search_index(procedures: list[dict]) -> list[dict]:
+    return [
+        {
+            "name": p["procedure_name"],
+            "href": p["page_href"],
+            "tactic": p.get("tactic", ""),
+            "ttp": p.get("ttp_id", ""),
+            "intent": p.get("intent", ""),
+            "author": p.get("author", ""),
+        }
+        for p in procedures
+    ]
+
+
+def highlight_code(text: str, lang: str) -> Markup:
+    if not text:
+        return Markup("")
+    try:
+        from pygments import highlight
+        from pygments.formatters import HtmlFormatter
+        from pygments.lexers import BashLexer, YamlLexer
+
+        lexer = BashLexer() if lang == "bash" else YamlLexer()
+        formatter = HtmlFormatter(linenos=False, cssclass="code-highlight")
+        return Markup(highlight(text, lexer, formatter))
+    except (ImportError, ValueError):
+        escaped = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        return Markup(f'<pre class="code-raw-fallback"><code>{escaped}</code></pre>')
+
 
 INTENT_SHORT_LIMIT = 56
 
@@ -276,6 +315,10 @@ def copy_static() -> None:
     dest.mkdir(parents=True, exist_ok=True)
     shutil.copy2(STATIC / "app.css", dest / "app.css")
     shutil.copy2(STATIC / "app.js", dest / "app.js")
+    for name in SITE_LOGO_FILES:
+        src = STATIC / name
+        if src.is_file():
+            shutil.copy2(src, dest / name)
 
 
 def main() -> int:
@@ -290,6 +333,8 @@ def main() -> int:
     procedures = load_procedures()
     tactics = sorted({p["tactic"] for p in procedures if p.get("tactic")})
     doc_nav = build_doc_nav()
+    site_logo_url = resolve_site_logo_url()
+    search_index = build_search_index(procedures)
     write_procedures_json(procedures)
     copy_static()
 
@@ -306,7 +351,8 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
-            site_logo_url=SITE_LOGO_URL,
+            site_logo_url=site_logo_url,
+            search_index=search_index,
             **ctx,
         )
         out_path = OUT / out_rel
@@ -336,10 +382,11 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
-            site_logo_url=SITE_LOGO_URL,
+            site_logo_url=site_logo_url,
+            search_index=search_index,
             proc=proc,
-            yaml_raw=yaml_raw,
-            script_raw=script_raw,
+            yaml_html=highlight_code(yaml_raw, "yaml"),
+            script_html=highlight_code(script_raw, "bash") if has_script else Markup(""),
             has_script=has_script,
             default_view=default_view,
             body_html=Markup(body_html) if body_html else None,
@@ -364,7 +411,8 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
-            site_logo_url=SITE_LOGO_URL,
+            site_logo_url=site_logo_url,
+            search_index=search_index,
             doc_title=item["title"],
             body_html=body,
             current_href=item["href"],
