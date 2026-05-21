@@ -4,23 +4,64 @@
 {% block sidebar %}
   {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, "") }}
 {% endblock %}
-{% block topbar %}
-  <div class="search-wrap">
-    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
-  </div>
-{% endblock %}
-{% block content_class %}wide{% endblock %}
+{% block content_class %}wide home-page{% endblock %}
 {% block content %}
-  <div class="page-hero">
+  <div class="home-hero">
+    <img class="home-logo" src="{{ site_logo_url }}" alt="attack-macOS" width="120" height="120" decoding="async" />
     <h1>attack-macOS</h1>
+    <p class="home-tagline">
+      Scripts for security teams to evaluate macOS endpoint detection and response capabilities—
+      Living Off The Orchard (LOLBins) techniques via standalone shell procedures with logging,
+      encoding, and MITRE ATT&amp;CK mapping.
+    </p>
     <p class="pill">Authorized security research · defensive validation · explicit red-team permission</p>
-    <p class="lead">
-      Browse <strong>{{ procedures|length }}</strong> shell procedures from the drawer (filters + search).
-      <code>docs/</code> in the repo is mirrored here under <a href="{{ site_prefix }}/docs/Guides/README.html">/docs/…</a>.
+  </div>
+
+  <section class="home-stats">
+    <div class="stat-card">
+      <strong>{{ procedures|length }}</strong>
+      <span>shell procedures</span>
+    </div>
+    <div class="stat-card">
+      <strong>YAML-first</strong>
+      <span>schema + builders</span>
+    </div>
+    <div class="stat-card">
+      <strong>MITRE ATT&amp;CK</strong>
+      <span>mapped metadata</span>
+    </div>
+  </section>
+
+  <section class="home-section">
+    <h2>Key features</h2>
+    <ul class="feature-list">
+      <li><strong>Builder tool</strong> — YAML template, schema, and builders for validated shell scripts.</li>
+      <li><strong>Modular design</strong> — self-contained procedures for standalone use or framework integration.</li>
+      <li><strong>macOS native</strong> — LOLBins and system utilities for realistic telemetry.</li>
+      <li><strong>Logging &amp; output</strong> — syslog, JSON/CSV formatting, encoding, and exfiltration helpers.</li>
+      <li><strong>CI/CD ready</strong> — inventory, validation, and maintainer audits in <code>cicd/</code>.</li>
+    </ul>
+  </section>
+
+  <section class="home-section">
+    <h2>Explore</h2>
+    <p>
+      Pick a procedure from the left panel (filters + header search). Each page shows the generated shell script
+      and procedure YAML from the repository. Guides under <code>docs/</code> are in the
+      <strong>Documentation</strong> dropdown at the bottom of the sidebar.
     </p>
     <p class="hero-actions">
-      <a class="btn" href="https://github.com/{{ github_repo }}">Source on GitHub</a>
+      <a class="btn" href="{{ site_prefix }}/browse.html">Browse procedures</a>
+      <a class="btn btn-ghost" href="https://github.com/{{ github_repo }}">Source on GitHub</a>
     </p>
-  </div>
-  <p class="footer-note">See repository README and SECURITY for disclaimer and credits.</p>
+  </section>
+
+  <section class="home-section home-disclaimer">
+    <h2>Disclaimer</h2>
+    <p>
+      Intended for <strong>authorized security research</strong>, defensive validation, and red-team exercises
+      with explicit written permission. The project owner and contributors are not responsible for misuse.
+      See <a href="https://github.com/{{ github_repo }}/blob/main/SECURITY.md">SECURITY.md</a>.
+    </p>
+  </section>
 {% endblock %}

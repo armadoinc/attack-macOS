@@ -64,6 +64,13 @@ OUT_PROCEDURES_ROOT = "procedures"
 MARKDOWN_EXT = ".md"
 HTML_EXT = ".html"
 
+SITE_LOGO_URL = os.environ.get(
+    "SITE_LOGO_URL",
+    "https://github.com/user-attachments/assets/03a5c7dc-9dd6-49f9-a58b-2fdcdb6596f6",
+)
+
+INTENT_SHORT_LIMIT = 56
+
 TACTIC_MAP = {
     "Discovery": "discovery",
     "Defense Evasion": "defense_evasion",
@@ -152,12 +159,30 @@ def _platform_display(platform_value: object) -> str:
     return ""
 
 
+def _intent_short(intent: str) -> str:
+    line = " ".join(intent.split())
+    if len(line) <= INTENT_SHORT_LIMIT:
+        return line
+    return line[: INTENT_SHORT_LIMIT - 1].rstrip() + "…"
+
+
+def _read_repo_text(rel_path: str) -> str | None:
+    path = REPO_ROOT / rel_path
+    if not path.is_file():
+        return None
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
 def _map_procedure_row(data: dict, config_filename: str) -> dict:
     procedure_name = str(data.get("procedure_name", "")).strip()
     tactic = str(data.get("tactic", "")).strip()
     tactic_dir = _tactic_dir(tactic) if tactic else REPO_UNKNOWN_TACTIC_DIR
     config_path = _repo_path_proc_config(config_filename)
     script_path = _repo_path_shell_script(tactic_dir, procedure_name)
+    intent = str(data.get("intent", "")).strip()
     return {
         "procedure_name": procedure_name,
         "slug": procedure_name,
@@ -165,7 +190,8 @@ def _map_procedure_row(data: dict, config_filename: str) -> dict:
         "tactic_key": tactic.lower(),
         "ttp_id": str(data.get("ttp_id", "")).strip(),
         "author": str(data.get("author", "")).strip(),
-        "intent": str(data.get("intent", "")).strip(),
+        "intent": intent,
+        "intent_short": _intent_short(intent),
         "version": str(data.get("version", "")).strip(),
         "guid": str(data.get("guid", "")).strip(),
         "created": str(data.get("created", "")).strip(),
@@ -173,6 +199,7 @@ def _map_procedure_row(data: dict, config_filename: str) -> dict:
         "credit": str(data.get("credit", "")).strip(),
         "platform_display": _platform_display(data.get("platform")),
         "yaml_path": config_path,
+        "script_path": script_path,
         "script_href": _github_raw(script_path),
         "yaml_href": _github_blob(config_path),
         "page_href": _procedure_page_href(procedure_name),
@@ -204,6 +231,7 @@ def load_procedures() -> list[dict]:
         if not str(data.get("procedure_name", "")).strip():
             continue
         rows.append(_map_procedure_row(data, config_file.name))
+    rows.sort(key=lambda row: row["procedure_name"].lower())
     return rows
 
 
@@ -278,6 +306,7 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
+            site_logo_url=SITE_LOGO_URL,
             **ctx,
         )
         out_path = OUT / out_rel
@@ -291,6 +320,10 @@ def main() -> int:
     for proc in procedures:
         procedure_name = proc["procedure_name"]
         md_path = PROC_DOCS / f"{procedure_name}{MARKDOWN_EXT}"
+        yaml_raw = _read_repo_text(proc["yaml_path"]) or ""
+        script_raw = _read_repo_text(proc["script_path"]) or ""
+        has_script = bool(script_raw)
+        default_view = "script" if has_script else "yaml"
         body_html: str | None = None
         if md_path.is_file():
             try:
@@ -303,7 +336,12 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
+            site_logo_url=SITE_LOGO_URL,
             proc=proc,
+            yaml_raw=yaml_raw,
+            script_raw=script_raw,
+            has_script=has_script,
+            default_view=default_view,
             body_html=Markup(body_html) if body_html else None,
             has_proc_doc=bool(body_html),
         )
@@ -326,6 +364,7 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
+            site_logo_url=SITE_LOGO_URL,
             doc_title=item["title"],
             body_html=body,
             current_href=item["href"],

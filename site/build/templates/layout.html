@@ -9,14 +9,22 @@
   <link rel="stylesheet" href="{{ site_prefix }}/assets/app.css" />
 </head>
 <body>
-  <input type="checkbox" id="nav-toggle" class="nav-toggle" tabindex="-1" />
-  <label class="burger" for="nav-toggle" aria-label="Toggle navigation menu"><span></span><span></span><span></span></label>
-  <aside class="sidebar">{% block sidebar %}{% endblock %}</aside>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle" tabindex="-1" aria-hidden="true" />
+  <header class="site-header">
+    <label class="burger" for="nav-toggle" aria-label="Toggle procedure menu"><span></span><span></span><span></span></label>
+    <a class="site-logo" href="{{ site_prefix }}/index.html">
+      <img src="{{ site_logo_url }}" alt="" width="34" height="34" decoding="async" />
+      <span>attack-macOS</span>
+    </a>
+    <div class="search-wrap header-search">
+      <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" aria-label="Search procedures in sidebar" />
+      <span class="search-count hidden" id="proc-search-count" aria-live="polite"></span>
+    </div>
+    <a class="header-gh" href="https://github.com/{{ github_repo }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </header>
   <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
-  <div class="shell">
-    <header class="topbar">{% block topbar %}{% endblock %}</header>
-    <main class="content {% block content_class %}{% endblock %}">{% block content %}{% endblock %}</main>
-  </div>
+  <aside class="sidebar">{% block sidebar %}{% endblock %}</aside>
+  <main class="content {% block content_class %}{% endblock %}">{% block content %}{% endblock %}</main>
   <script src="{{ site_prefix }}/assets/app.js" defer></script>
 </body>
 </html>

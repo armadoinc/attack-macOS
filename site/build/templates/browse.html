@@ -4,17 +4,11 @@
 {% block sidebar %}
   {{ full_sidebar(site_prefix, doc_nav, "", procedures, tactics, "") }}
 {% endblock %}
-{% block topbar %}
-  <div class="search-wrap">
-    <input type="search" id="proc-search" placeholder="Search procedures…" autocomplete="off" />
-  </div>
-{% endblock %}
 {% block content %}
   <h1>Browse procedures</h1>
-  <p>
-    Use the left panel to filter by tactic, author substring, or TTP id, and search by name or free text.
-    Each procedure has a detail page with YAML metadata and optional long-form notes under
-    <code>docs/Procedures/&lt;procedure_name&gt;.md</code>.
+  <p class="lead">
+    Use the header search and sidebar filters to narrow the list. Select a procedure to view its generated shell
+    script and YAML in the main panel.
   </p>
   <p><a href="{{ site_prefix }}/index.html">← Home</a></p>
 {% endblock %}
