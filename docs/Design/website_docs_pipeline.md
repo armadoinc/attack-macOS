@@ -32,6 +32,30 @@ python3 site/build/build_site.py
 
 GitHub Actions runs the same command before `upload-pages-artifact`.
 
+### Enable GitHub Pages (one-time, maintainer)
+
+The workflow **builds** the site on every push to `main`; **deploy** uses `actions/deploy-pages` and fails with **404** until Pages is turned on:
+
+1. Repo → **Settings** → **Pages**
+2. **Build and deployment** → **Source**: **GitHub Actions** (not “Deploy from a branch”)
+3. Re-run the failed workflow (**Actions** → **Deploy GitHub Pages** → **Re-run all jobs**) or push a new commit
+
+Project URL: `https://<owner>.github.io/<repo>/` (this repo: `https://darmado.github.io/attack-macOS/`).
+
+### Local build (externally managed Python)
+
+Do **not** `pip install` into system Python (Homebrew PEP 668). Use a venv or [uv](docs/CICD/setup_venv.md):
+
+```bash
+python3 -m venv .venv-site
+source .venv-site/bin/activate
+pip install -r site/build/requirements.txt
+python3 site/build/build_site.py
+cd site/public && python3 -m http.server 8765
+```
+
+CI uses a fresh Ubuntu runner with `pip install -r site/build/requirements.txt`; your local Python policy does not affect Pages deploy.
+
 ## Adding or updating content
 
 ### Docs mirror

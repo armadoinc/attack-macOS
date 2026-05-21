@@ -18,6 +18,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -36,6 +37,33 @@ PROC_DOCS = DOCS / "Procedures"
 
 SITE_PREFIX = os.environ.get("SITE_PREFIX", "/attack-macOS").rstrip("/") or ""
 
+GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "darmado/attack-macOS")
+GITHUB_DEFAULT_REF = os.environ.get("GITHUB_REF", "main")
+
+GITHUB_BLOB_URL_FMT = "https://github.com/{owner}/{repo}/blob/{ref}/"
+GITHUB_RAW_URL_FMT = "https://raw.githubusercontent.com/{owner}/{repo}/{ref}/"
+
+REPO_PROC_CONFIG_DIR = "attackmacos/core/config"
+REPO_TTP_ROOT = "attackmacos/ttp"
+REPO_TTP_SHELL_SUBDIR = "shell"
+REPO_SHELL_SUFFIX = ".sh"
+REPO_CONFIG_SUFFIX = ".yml"
+REPO_UNKNOWN_TACTIC_DIR = "unknown"
+
+SITE_DOCS_SEGMENT = "docs"
+SITE_PROCEDURES_SEGMENT = "procedures"
+SITE_ASSETS_SEGMENT = "assets"
+SITE_DATA_SEGMENT = "data"
+SITE_PROCEDURES_JSON = "procedures.json"
+
+OUT_INDEX = "index.html"
+OUT_BROWSE = "browse.html"
+OUT_DOCS_ROOT = "docs"
+OUT_PROCEDURES_ROOT = "procedures"
+
+MARKDOWN_EXT = ".md"
+HTML_EXT = ".html"
+
 TACTIC_MAP = {
     "Discovery": "discovery",
     "Defense Evasion": "defense_evasion",
@@ -51,28 +79,120 @@ TACTIC_MAP = {
     "Impact": "impact",
 }
 
-GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "darmado/attack-macOS")
+MD_TITLE_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
 
 
 def _tactic_dir(tactic: str) -> str:
     return TACTIC_MAP.get(tactic, tactic.lower().replace(" ", "_"))
 
 
-def _github_blob(path_in_repo: str) -> str:
+def _github_owner_repo() -> tuple[str, str]:
     owner, repo = GITHUB_REPO.split("/", 1)
-    return f"https://github.com/{owner}/{repo}/blob/main/{path_in_repo}"
+    return owner, repo
+
+
+def _github_url(fmt: str, path_in_repo: str) -> str:
+    owner, repo = _github_owner_repo()
+    base = fmt.format(owner=owner, repo=repo, ref=GITHUB_DEFAULT_REF)
+    return base + path_in_repo.lstrip("/")
+
+
+def _github_blob(path_in_repo: str) -> str:
+    return _github_url(GITHUB_BLOB_URL_FMT, path_in_repo)
 
 
 def _github_raw(path_in_repo: str) -> str:
-    owner, repo = GITHUB_REPO.split("/", 1)
-    return f"https://raw.githubusercontent.com/{owner}/{repo}/main/{path_in_repo}"
+    return _github_url(GITHUB_RAW_URL_FMT, path_in_repo)
+
+
+def _repo_path_proc_config(config_filename: str) -> str:
+    return f"{REPO_PROC_CONFIG_DIR}/{config_filename}"
+
+
+def _repo_path_shell_script(tactic_dir: str, procedure_name: str) -> str:
+    return "/".join(
+        (
+            REPO_TTP_ROOT,
+            tactic_dir,
+            REPO_TTP_SHELL_SUBDIR,
+            f"{procedure_name}{REPO_SHELL_SUFFIX}",
+        )
+    )
+
+
+def _site_url(*segments: str) -> str:
+    parts = [SITE_PREFIX.strip("/")] if SITE_PREFIX else []
+    parts.extend(s.strip("/") for s in segments if s and s.strip("/"))
+    return "/" + "/".join(parts)
+
+
+def _quote_seg(seg: str) -> str:
+    return quote(seg, safe="-._~")
+
+
+def _doc_href(rel: Path) -> str:
+    parts = rel.as_posix().split("/")
+    out_parts = parts[:-1] + [parts[-1].replace(MARKDOWN_EXT, HTML_EXT)]
+    return _site_url(SITE_DOCS_SEGMENT, *(_quote_seg(p) for p in out_parts))
+
+
+def _procedure_page_href(slug: str) -> str:
+    return _site_url(SITE_PROCEDURES_SEGMENT, f"{slug}{HTML_EXT}")
+
+
+def _doc_output_rel(rel: Path) -> Path:
+    return Path(OUT_DOCS_ROOT) / Path(*rel.parts[:-1]) / (rel.stem + HTML_EXT)
+
+
+def _platform_display(platform_value: object) -> str:
+    if isinstance(platform_value, list):
+        return ", ".join(str(x) for x in platform_value)
+    if platform_value:
+        return str(platform_value)
+    return ""
+
+
+def _map_procedure_row(data: dict, config_filename: str) -> dict:
+    procedure_name = str(data.get("procedure_name", "")).strip()
+    tactic = str(data.get("tactic", "")).strip()
+    tactic_dir = _tactic_dir(tactic) if tactic else REPO_UNKNOWN_TACTIC_DIR
+    config_path = _repo_path_proc_config(config_filename)
+    script_path = _repo_path_shell_script(tactic_dir, procedure_name)
+    return {
+        "procedure_name": procedure_name,
+        "slug": procedure_name,
+        "tactic": tactic,
+        "tactic_key": tactic.lower(),
+        "ttp_id": str(data.get("ttp_id", "")).strip(),
+        "author": str(data.get("author", "")).strip(),
+        "intent": str(data.get("intent", "")).strip(),
+        "version": str(data.get("version", "")).strip(),
+        "guid": str(data.get("guid", "")).strip(),
+        "created": str(data.get("created", "")).strip(),
+        "updated": str(data.get("updated", "")).strip(),
+        "credit": str(data.get("credit", "")).strip(),
+        "platform_display": _platform_display(data.get("platform")),
+        "yaml_path": config_path,
+        "script_href": _github_raw(script_path),
+        "yaml_href": _github_blob(config_path),
+        "page_href": _procedure_page_href(procedure_name),
+    }
+
+
+def _map_doc_nav_item(rel: Path, title: str) -> dict:
+    return {
+        "href": _doc_href(rel),
+        "title": title,
+        "sort": rel.as_posix().lower(),
+        "rel": rel.as_posix(),
+    }
 
 
 def load_procedures() -> list[dict]:
     rows: list[dict] = []
-    for f in sorted(PROC_DIR.glob("*.yml")):
+    for config_file in sorted(PROC_DIR.glob(f"*{REPO_CONFIG_SUFFIX}")):
         try:
-            raw = f.read_text(encoding="utf-8")
+            raw = config_file.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
         try:
@@ -81,57 +201,15 @@ def load_procedures() -> list[dict]:
             continue
         if not isinstance(data, dict) or "procedure_name" not in data:
             continue
-        pn = str(data.get("procedure_name", "")).strip()
-        if not pn:
+        if not str(data.get("procedure_name", "")).strip():
             continue
-        tactic = str(data.get("tactic", "")).strip()
-        tdir = _tactic_dir(tactic) if tactic else "unknown"
-        rel_script = f"attackmacos/ttp/{tdir}/shell/{pn}.sh"
-        plat = data.get("platform")
-        if isinstance(plat, list):
-            platform_display = ", ".join(str(x) for x in plat)
-        elif plat:
-            platform_display = str(plat)
-        else:
-            platform_display = ""
-        rows.append(
-            {
-                "procedure_name": pn,
-                "slug": pn,
-                "tactic": tactic,
-                "tactic_key": tactic.lower(),
-                "ttp_id": str(data.get("ttp_id", "")).strip(),
-                "author": str(data.get("author", "")).strip(),
-                "intent": str(data.get("intent", "")).strip(),
-                "version": str(data.get("version", "")).strip(),
-                "guid": str(data.get("guid", "")).strip(),
-                "created": str(data.get("created", "")).strip(),
-                "updated": str(data.get("updated", "")).strip(),
-                "credit": str(data.get("credit", "")).strip(),
-                "platform_display": platform_display,
-                "yaml_path": f"attackmacos/core/config/{f.name}",
-                "script_href": _github_raw(rel_script),
-                "yaml_href": _github_blob(f"attackmacos/core/config/{f.name}"),
-            }
-        )
+        rows.append(_map_procedure_row(data, config_file.name))
     return rows
-
-
-def _doc_href(rel: Path) -> str:
-    parts = rel.as_posix().split("/")
-    out_parts = parts[:-1] + [parts[-1].replace(".md", ".html")]
-    return SITE_PREFIX + "/docs/" + "/".join(_quote_seg(p) for p in out_parts)
-
-
-def _quote_seg(seg: str) -> str:
-    from urllib.parse import quote
-
-    return quote(seg, safe="-._~")
 
 
 def build_doc_nav() -> list[dict]:
     nav: list[dict] = []
-    for path in sorted(DOCS.rglob("*.md")):
+    for path in sorted(DOCS.rglob(f"*{MARKDOWN_EXT}")):
         if "public" in path.parts:
             continue
         try:
@@ -140,12 +218,11 @@ def build_doc_nav() -> list[dict]:
             continue
         rel = path.relative_to(DOCS)
         title = rel.as_posix()
-        m = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
-        if m:
-            title = m.group(1).strip()
-        href = _doc_href(rel)
-        nav.append({"href": href, "title": title, "sort": rel.as_posix().lower(), "rel": rel.as_posix()})
-    nav.sort(key=lambda x: x["sort"])
+        match = MD_TITLE_RE.search(text)
+        if match:
+            title = match.group(1).strip()
+        nav.append(_map_doc_nav_item(rel, title))
+    nav.sort(key=lambda item: item["sort"])
     return nav
 
 
@@ -158,16 +235,16 @@ def render_md_to_html(text: str) -> str:
 
 
 def write_procedures_json(procedures: list[dict]) -> None:
-    data = OUT / "assets" / "data"
-    data.mkdir(parents=True, exist_ok=True)
-    (data / "procedures.json").write_text(
+    data_dir = OUT / SITE_ASSETS_SEGMENT / SITE_DATA_SEGMENT
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / SITE_PROCEDURES_JSON).write_text(
         json.dumps(procedures, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
 
 
 def copy_static() -> None:
-    dest = OUT / "assets"
+    dest = OUT / SITE_ASSETS_SEGMENT
     dest.mkdir(parents=True, exist_ok=True)
     shutil.copy2(STATIC / "app.css", dest / "app.css")
     shutil.copy2(STATIC / "app.js", dest / "app.js")
@@ -207,13 +284,13 @@ def main() -> int:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html_out, encoding="utf-8")
 
-    render("home.html", "index.html")
-    render("browse.html", "browse.html")
+    render("home.html", OUT_INDEX)
+    render("browse.html", OUT_BROWSE)
 
     proc_tpl = env.get_template("procedure.html")
-    for p in procedures:
-        pn = p["procedure_name"]
-        md_path = PROC_DOCS / f"{pn}.md"
+    for proc in procedures:
+        procedure_name = proc["procedure_name"]
+        md_path = PROC_DOCS / f"{procedure_name}{MARKDOWN_EXT}"
         body_html: str | None = None
         if md_path.is_file():
             try:
@@ -226,11 +303,11 @@ def main() -> int:
             tactics=tactics,
             doc_nav=doc_nav,
             github_repo=GITHUB_REPO,
-            proc=p,
+            proc=proc,
             body_html=Markup(body_html) if body_html else None,
             has_proc_doc=bool(body_html),
         )
-        out_path = OUT / "procedures" / f"{p['slug']}.html"
+        out_path = OUT / OUT_PROCEDURES_ROOT / f"{proc['slug']}{HTML_EXT}"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html_out, encoding="utf-8")
 
@@ -242,7 +319,6 @@ def main() -> int:
             md_text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        current_href = item["href"]
         body = Markup(render_md_to_html(md_text))
         html_out = doc_tpl.render(
             site_prefix=SITE_PREFIX,
@@ -252,10 +328,9 @@ def main() -> int:
             github_repo=GITHUB_REPO,
             doc_title=item["title"],
             body_html=body,
-            current_href=current_href,
+            current_href=item["href"],
         )
-        out_rel = Path("docs") / Path(*rel.parts[:-1]) / (rel.stem + ".html")
-        out_path = OUT / out_rel
+        out_path = OUT / _doc_output_rel(rel)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html_out, encoding="utf-8")
 
